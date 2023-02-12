@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("orders")
 public class OrderController {
-
     @Autowired
     OrderService orderService = new OrderService();
 
@@ -36,24 +35,25 @@ public class OrderController {
 
     @PutMapping("/add-order-partner-pair")
     public ResponseEntity<String> addOrderPartnerPair(@RequestParam String orderId, @RequestParam String partnerId){
-        orderService.addOrderPartnerPair(orderId, partnerId);
+        orderService.assignOrderToPartner(orderId,partnerId);
         //This is basically assigning that order to that partnerId
         return new ResponseEntity<>("New order-partner pair added successfully", HttpStatus.CREATED);
     }
 
     @GetMapping("/get-order-by-id/{orderId}")
     public ResponseEntity<Order> getOrderById(@PathVariable String orderId){
-        Order order= null;
+        Order order = null;
         order = orderService.getOrderById(orderId);
         //order should be returned with an orderId.
+
         return new ResponseEntity<>(order, HttpStatus.CREATED);
     }
 
     @GetMapping("/get-partner-by-id/{partnerId}")
     public ResponseEntity<DeliveryPartner> getPartnerById(@PathVariable String partnerId){
-
         DeliveryPartner deliveryPartner = null;
-        deliveryPartner = orderService.getPartnerById(partnerId);
+        deliveryPartner = orderService.getPartner(partnerId);
+
         //deliveryPartner should contain the value given by partnerId
 
         return new ResponseEntity<>(deliveryPartner, HttpStatus.CREATED);
@@ -62,7 +62,7 @@ public class OrderController {
     @GetMapping("/get-order-count-by-partner-id/{partnerId}")
     public ResponseEntity<Integer> getOrderCountByPartnerId(@PathVariable String partnerId){
 
-        Integer orderCount = orderService.getOrderCountByPartnerId(partnerId);
+        Integer orderCount = orderService.getNoOfOrderByPartner(partnerId);
 
         //orderCount should denote the orders given by a partner-id
 
@@ -83,24 +83,26 @@ public class OrderController {
     public ResponseEntity<List<String>> getAllOrders(){
         List<String> orders = null;
         orders = orderService.getAllOrders();
+
         //Get all orders
         return new ResponseEntity<>(orders, HttpStatus.CREATED);
     }
 
     @GetMapping("/get-count-of-unassigned-orders")
     public ResponseEntity<Integer> getCountOfUnassignedOrders(){
-        Integer countOfOrders = 0;
-        countOfOrders = orderService.getCountOfUnassignedOrders();
+        Integer countOfOrders = orderService.getCountOfUnassignedOrders();
+
         //Count of orders that have not been assigned to any DeliveryPartner
 
         return new ResponseEntity<>(countOfOrders, HttpStatus.CREATED);
     }
 
-    @GetMapping("/get-count-of-orders-left-after-given-time/{partnerId}")
+    @GetMapping("/get-count-of-orders-left-after-given-time/{partnerId}/{time}")
     public ResponseEntity<Integer> getOrdersLeftAfterGivenTimeByPartnerId(@PathVariable String time, @PathVariable String partnerId){
 
         Integer countOfOrders = 0;
-        countOfOrders = orderService.getOrdersLeftAfterGivenTimeByPartnerId(time, partnerId);
+        countOfOrders = orderService.getOrdersLeftAfterGivenTimeByPartnerId(time,partnerId);
+
         //countOfOrders that are left after a particular time of a DeliveryPartner
 
         return new ResponseEntity<>(countOfOrders, HttpStatus.CREATED);
@@ -117,19 +119,19 @@ public class OrderController {
 
     @DeleteMapping("/delete-partner-by-id/{partnerId}")
     public ResponseEntity<String> deletePartnerById(@PathVariable String partnerId){
-
+        orderService.deletePartner(partnerId);
         //Delete the partnerId
         //And push all his assigned orders to unassigned orders.
-        orderService.deletePartner(partnerId);
+
         return new ResponseEntity<>(partnerId + " removed successfully", HttpStatus.CREATED);
     }
 
     @DeleteMapping("/delete-order-by-id/{orderId}")
     public ResponseEntity<String> deleteOrderById(@PathVariable String orderId){
-
+        orderService.deleteOrder(orderId);
         //Delete an order and also
         // remove it from the assigned order of that partnerId
-        orderService.deleteOrder(orderId);
+
         return new ResponseEntity<>(orderId + " removed successfully", HttpStatus.CREATED);
     }
 }
